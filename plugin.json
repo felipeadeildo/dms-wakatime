@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/AvengeMedia/DankMaterialShell/refs/heads/master/quickshell/PLUGINS/plugin-schema.json",
+  "id": "wakaTime",
+  "name": "WakaTime",
+  "description": "Monitor your coding time with WakaTime or self-hosted alternatives (Wakapi, Hakatime)",
+  "version": "0.1.0",
+  "author": "felipeadeildo",
+  "icon": "monitoring",
+  "type": "widget",
+  "component": "./WakaTime.qml",
+  "settings": "./WakaTimeSettings.qml",
+  "permissions": ["settings_read", "settings_write"],
+  "requires_dms": ">=1.2.0",
+  "requires": ["curl"],
+  "capabilities": ["wakatime"]
+}
