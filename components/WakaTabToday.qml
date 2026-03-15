@@ -70,7 +70,7 @@ Item {
                 width: parent.width
                 implicitHeight: nowCol.implicitHeight + Theme.spacingM * 2
                 radius: Theme.cornerRadius
-                color: Theme.surfaceContainerHigh
+                color: Theme.surfaceContainerHighest
                 visible: api && api.currentProject !== ""
 
                 Column {

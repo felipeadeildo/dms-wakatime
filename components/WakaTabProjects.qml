@@ -87,7 +87,7 @@ Item {
                         radius: 13
                         color: root.selectedPeriod === modelData.value
                             ? Theme.primary
-                            : Theme.surfaceContainerHigh
+                            : Theme.surfaceContainerHighest
 
                         StyledText {
                             id: chipLabel

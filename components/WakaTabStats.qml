@@ -118,7 +118,7 @@ Item {
                         width: (parent.width - Theme.spacingS) / 2
                         height: streakCol.implicitHeight + Theme.spacingM * 2
                         radius: Theme.cornerRadius
-                        color: Theme.surfaceContainerHigh
+                        color: Theme.surfaceContainerHighest
 
                         Column {
                             id: streakCol

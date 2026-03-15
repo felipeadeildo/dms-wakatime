@@ -109,7 +109,7 @@ Item {
         }
 
         StyledText {
-            text: root.totalTime + " / goal " + root.dailyGoalHours + "h"
+            text: Math.round(root.goalRatio * 100) + "% of " + root.dailyGoalHours + "h goal"
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.onSurfaceVariant
         }

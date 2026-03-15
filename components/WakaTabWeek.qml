@@ -121,7 +121,7 @@ Item {
                         width: (parent.width - Theme.spacingS * 2) / 3
                         height: statCol.implicitHeight + Theme.spacingS * 2
                         radius: Theme.cornerRadius
-                        color: Theme.surfaceContainerHigh
+                        color: Theme.surfaceContainerHighest
 
                         Column {
                             id: statCol

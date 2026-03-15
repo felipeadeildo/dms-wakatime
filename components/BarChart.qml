@@ -9,7 +9,7 @@ Item {
     property int highlightIndex: -1
     property bool highlightMax: false
     property color barColor: Theme.primary
-    property color barColorDim: Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.18)
+    property color barColorDim: Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.35)
     property color labelColor: Theme.onSurfaceVariant
 
     signal barClicked(int index)
