@@ -11,6 +11,7 @@ Item {
 
     // Injected by parent
     property var pluginService: null
+    property bool isOwner: true   // set to false on non-owner instances
     readonly property string pluginId: "wakaTime"
 
     // API config
@@ -115,7 +116,17 @@ Item {
     }
 
     onConfigLoaded: {
-        if (!isConfigured)
+        _startFetching();
+    }
+
+    // Also react when ownership is granted after config is already loaded
+    onIsOwnerChanged: {
+        if (isOwner && isConfigured && !pillTimer.running)
+            _startFetching();
+    }
+
+    function _startFetching() {
+        if (!isConfigured || !isOwner)
             return;
         fetchPill();
         pillTimer.start();
@@ -197,7 +208,7 @@ Item {
 
     // Public fetch functions
     function fetchPill() {
-        if (!isConfigured)
+        if (!isConfigured || !isOwner)
             return;
         _fetchEndpoint("fetchPill", "/users/current/summaries?range=today", parsed => {
             const cumulative = parsed.cumulative_total;
@@ -213,7 +224,7 @@ Item {
     }
 
     function fetchToday() {
-        if (!isConfigured)
+        if (!isConfigured || !isOwner)
             return;
         _fetchEndpoint("fetchToday", "/users/current/summaries?range=today", parsed => {
             todayData = parsed.data;
@@ -223,7 +234,7 @@ Item {
     }
 
     function fetchWeek() {
-        if (!isConfigured)
+        if (!isConfigured || !isOwner)
             return;
         _fetchEndpoint("fetchWeek", "/users/current/summaries?range=last_7_days", parsed => {
             weekData = parsed.data;
@@ -233,7 +244,7 @@ Item {
     }
 
     function fetchMonth() {
-        if (!isConfigured)
+        if (!isConfigured || !isOwner)
             return;
         _fetchEndpoint("fetchMonth", "/users/current/summaries?range=last_30_days", parsed => {
             monthData = parsed.data;

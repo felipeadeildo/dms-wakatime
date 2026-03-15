@@ -1,5 +1,7 @@
 // Root PluginComponent. Owns the bar pill UI and the popout shell.
 // All data logic is delegated to WakaAPI.
+// Multi-monitor: PluginGlobalVar shares state across all bar instances.
+// Only the owner instance (first to acquire) runs fetches.
 
 import QtQuick
 import "./utils"
@@ -10,45 +12,118 @@ import qs.Modules.Plugins
 PluginComponent {
     id: root
 
-    // API module
+    // Owner election: first instance to set this wins
+    property string instanceId: Math.random().toString(36).substring(2)
+
+    PluginGlobalVar {
+        id: gvOwner
+        varName: "ownerId"
+        defaultValue: ""
+    }
+
+    PluginGlobalVar {
+        id: gvConfigured
+        varName: "isConfigured"
+        defaultValue: false
+    }
+
+    PluginGlobalVar {
+        id: gvTotalTime
+        varName: "totalTimeToday"
+        defaultValue: "--"
+    }
+
+    PluginGlobalVar {
+        id: gvTotalSeconds
+        varName: "totalSecondsToday"
+        defaultValue: 0
+    }
+
+    PluginGlobalVar {
+        id: gvProject
+        varName: "currentProject"
+        defaultValue: ""
+    }
+
+    PluginGlobalVar {
+        id: gvLanguage
+        varName: "currentLanguage"
+        defaultValue: ""
+    }
+
+    PluginGlobalVar {
+        id: gvEditor
+        varName: "currentEditor"
+        defaultValue: ""
+    }
+
+    readonly property bool isOwner: gvOwner.value === instanceId
+
+    // API module — only runs fetches when this instance is owner
     WakaAPI {
         id: api
         pluginService: root.pluginService
+        isOwner: root.isOwner
+
+        onPillDataUpdated: {
+            gvTotalTime.set(api.totalTimeToday);
+            gvTotalSeconds.set(api.totalSecondsToday);
+            gvProject.set(api.currentProject);
+            gvLanguage.set(api.currentLanguage);
+            gvEditor.set(api.currentEditor);
+        }
+
+        onConfigLoaded: {
+            gvConfigured.set(api.isConfigured);
+        }
     }
 
-    // Scalar properties forwarded from api — safe to reference from Component{} via root.*
-    readonly property bool apiConfigured: api ? api.isConfigured : false
-    readonly property string apiTotalTime: api ? (api.totalTimeToday || "0m") : "--"
-    readonly property string apiProject: api ? api.currentProject : ""
-    readonly property string apiLanguage: api ? api.currentLanguage : ""
-    readonly property string apiEditor: api ? api.currentEditor : ""
-    readonly property int apiTotalSeconds: api ? api.totalSecondsToday : 0
+    // pluginId is injected by DMS when pluginService is set — wait for it
+    onPluginIdChanged: {
+        if (!pluginId)
+            return;
+        if (!gvOwner.value)
+            gvOwner.set(instanceId);
+    }
 
-    readonly property color iconColor: {
-        if (!api || !api.isConfigured || api.totalSecondsToday === 0)
-            return Theme.surfaceText;
-        if (pluginData.showGoalColor === false)
-            return Theme.surfaceText;
+    // Read from globals — all instances stay in sync
+    readonly property bool apiConfigured: gvConfigured.value
+    readonly property string apiTotalTime: gvTotalTime.value || "0m"
+    readonly property int apiTotalSeconds: gvTotalSeconds.value
+    readonly property string apiProject: gvProject.value
+    readonly property string apiLanguage: gvLanguage.value
+    readonly property string apiEditor: gvEditor.value
+
+    readonly property real goalRatio: {
+        if (!apiConfigured || apiTotalSeconds === 0)
+            return 0;
         const goal = (parseFloat(pluginData.dailyGoalHours) || 4) * 3600;
-        const ratio = api.totalSecondsToday / goal;
-        if (ratio >= 0.9)
+        return Math.min(apiTotalSeconds / goal, 1.0);
+    }
+
+    readonly property color progressColor: {
+        if (!apiConfigured || apiTotalSeconds === 0)
+            return Theme.surfaceVariant;
+        if (pluginData.showGoalColor === false)
+            return Theme.primary;
+        if (goalRatio >= 0.9)
             return Theme.success;
-        if (ratio >= 0.5)
+        if (goalRatio >= 0.5)
             return Theme.warning;
         return Theme.error;
     }
 
     readonly property string pillExtraText: {
-        if (!api || !api.isConfigured)
+        if (!apiConfigured)
             return "";
         const field = pluginData.pillDisplayField || "project";
         switch (field) {
         case "project":
-            return api.currentProject;
+            return apiProject;
         case "language":
-            return api.currentLanguage;
+            return apiLanguage;
         case "editor":
-            return api.currentEditor;
+            return apiEditor;
         default:
             return "";
         }
@@ -57,13 +132,45 @@ PluginComponent {
     // Bar pill (horizontal)
     horizontalBarPill: Component {
         Row {
-            spacing: Theme.spacingS
+            spacing: Theme.spacingXS
 
-            DankIcon {
-                name: "keyboard"
-                color: root.iconColor
-                size: Theme.iconSize - 6
+            // Goal progress arc
+            Canvas {
+                id: progressRing
+                width: 18
+                height: 18
                 anchors.verticalCenter: parent.verticalCenter
+                renderStrategy: Canvas.Cooperative
+
+                property real ratio: root.goalRatio
+                property color ringColor: root.progressColor
+                property color bgColor: Theme.surfaceVariant
+
+                onRatioChanged: requestPaint()
+                onRingColorChanged: requestPaint()
+
+                onPaint: {
+                    var ctx = getContext("2d");
+                    ctx.reset();
+                    var cx = width / 2, cy = height / 2, r = 7, lw = 2.5;
+
+                    // Background circle
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+                    ctx.lineWidth = lw;
+                    ctx.strokeStyle = bgColor;
+                    ctx.stroke();
+
+                    // Progress arc
+                    if (ratio > 0) {
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * ratio);
+                        ctx.lineWidth = lw;
+                        ctx.strokeStyle = ringColor;
+                        ctx.lineCap = "round";
+                        ctx.stroke();
+                    }
+                }
             }
 
             StyledText {
