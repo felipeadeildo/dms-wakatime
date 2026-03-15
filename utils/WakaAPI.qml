@@ -25,7 +25,7 @@ Item {
     property string errorMessage: ""
     property var lastSuccessTime: null
 
-    // Pill data (from /status_bar/today)
+    // Pill data
     property string totalTimeToday: "--"
     property int totalSecondsToday: 0
     property string currentProject: ""
@@ -45,10 +45,10 @@ Item {
     signal configLoaded
     signal connectionTestResult(bool success, string message)
 
-    // Timer intervals (resolved once at startup from pluginService)
-    readonly property int pillIntervalMs: (pluginService ? parseInt(pluginService.loadPluginData(pluginId, "pillIntervalMin", "5")) : 5) * 60000
-    readonly property int todayIntervalMs: (pluginService ? parseInt(pluginService.loadPluginData(pluginId, "todayIntervalMin", "15")) : 15) * 60000
-    readonly property int weekIntervalMs: (pluginService ? parseInt(pluginService.loadPluginData(pluginId, "weekIntervalMin", "30")) : 30) * 60000
+    // Timer intervals
+    property int pillIntervalMs: 5 * 60000
+    property int todayIntervalMs: 15 * 60000
+    property int weekIntervalMs: 30 * 60000
     readonly property int monthIntervalMs: 60 * 60000
 
     // Timers
@@ -57,7 +57,7 @@ Item {
         id: pillTimer
         interval: root.pillIntervalMs
         repeat: true
-        triggeredOnStart: false   // started explicitly in onConfigLoaded
+        triggeredOnStart: false
         onTriggered: root.fetchPill()
     }
 
@@ -66,7 +66,6 @@ Item {
         interval: 10000
         repeat: false
         onTriggered: {
-            root.fetchToday();
             todayTimer.start();
         }
     }
@@ -115,11 +114,18 @@ Item {
         loadConfig();
     }
 
+    onPluginServiceChanged: {
+        if (!pluginService)
+            return;
+        pillIntervalMs = parseInt(pluginService.loadPluginData(pluginId, "pillIntervalMin", "5")) * 60000;
+        todayIntervalMs = parseInt(pluginService.loadPluginData(pluginId, "todayIntervalMin", "15")) * 60000;
+        weekIntervalMs = parseInt(pluginService.loadPluginData(pluginId, "weekIntervalMin", "30")) * 60000;
+    }
+
     onConfigLoaded: {
         _startFetching();
     }
 
-    // Also react when ownership is granted after config is already loaded
     onIsOwnerChanged: {
         if (isOwner && isConfigured && !pillTimer.running)
             _startFetching();
@@ -137,7 +143,6 @@ Item {
 
     // Config loading
     function loadConfig() {
-        // Saved API key takes priority over .wakatime.cfg
         if (pluginService) {
             const savedKey = pluginService.loadPluginData(pluginId, "apiKey", "");
             const savedUrl = pluginService.loadPluginData(pluginId, "apiUrl", "");
@@ -147,7 +152,6 @@ Item {
                 apiUrl = savedUrl;
         }
 
-        // Fall back to ~/.wakatime.cfg for api_key / api_url
         Proc.runCommand("wakaTime.readCfg", ["sh", "-c", "cat ~/.wakatime.cfg"], (stdout, exitCode) => {
             if (exitCode === 0) {
                 const lines = stdout.split("\n");
@@ -207,9 +211,8 @@ Item {
     }
 
     // Public fetch functions
+
     function fetchPill() {
-        if (!isConfigured || !isOwner)
-            return;
         _fetchEndpoint("fetchPill", "/users/current/summaries?range=today", parsed => {
             const cumulative = parsed.cumulative_total;
             const day = parsed.data && parsed.data[0];
@@ -218,24 +221,32 @@ Item {
             currentProject = (day && day.projects && day.projects[0]) ? day.projects[0].name : "";
             currentLanguage = (day && day.languages && day.languages[0]) ? day.languages[0].name : "";
             currentEditor = (day && day.editors && day.editors[0]) ? day.editors[0].name : "";
+            todayData = parsed.data;
             _savePillCache();
+            _saveSummaryCache("cacheToday", parsed.data);
             pillDataUpdated();
+            todayDataUpdated();
         }, null);
     }
 
     function fetchToday() {
-        if (!isConfigured || !isOwner)
-            return;
         _fetchEndpoint("fetchToday", "/users/current/summaries?range=today", parsed => {
+            const cumulative = parsed.cumulative_total;
+            const day = parsed.data && parsed.data[0];
+            totalTimeToday = (cumulative && cumulative.text) ? cumulative.text : (day ? (day.grand_total.text || "0m") : "0m");
+            totalSecondsToday = cumulative ? cumulative.seconds : (day ? day.grand_total.total_seconds : 0);
+            currentProject = (day && day.projects && day.projects[0]) ? day.projects[0].name : "";
+            currentLanguage = (day && day.languages && day.languages[0]) ? day.languages[0].name : "";
+            currentEditor = (day && day.editors && day.editors[0]) ? day.editors[0].name : "";
             todayData = parsed.data;
+            _savePillCache();
             _saveSummaryCache("cacheToday", parsed.data);
+            pillDataUpdated();
             todayDataUpdated();
         }, null);
     }
 
     function fetchWeek() {
-        if (!isConfigured || !isOwner)
-            return;
         _fetchEndpoint("fetchWeek", "/users/current/summaries?range=last_7_days", parsed => {
             weekData = parsed.data;
             _saveSummaryCache("cacheWeek", parsed.data);
@@ -244,8 +255,6 @@ Item {
     }
 
     function fetchMonth() {
-        if (!isConfigured || !isOwner)
-            return;
         _fetchEndpoint("fetchMonth", "/users/current/summaries?range=last_30_days", parsed => {
             monthData = parsed.data;
             _saveSummaryCache("cacheMonth", parsed.data);

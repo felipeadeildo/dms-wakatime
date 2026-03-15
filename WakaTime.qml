@@ -1,7 +1,6 @@
 // Root PluginComponent. Owns the bar pill UI and the popout shell.
 // All data logic is delegated to WakaAPI.
-// Multi-monitor: PluginGlobalVar shares state across all bar instances.
-// Only the owner instance (first to acquire) runs fetches.
+// Uses PluginGlobalVar to sync state across bar instances (one per monitor).
 
 import QtQuick
 import "./utils"
@@ -147,7 +146,6 @@ PluginComponent {
                 property color bgColor: Theme.surfaceVariant
 
                 onRatioChanged: requestPaint()
-                onRingColorChanged: requestPaint()
 
                 onPaint: {
                     var ctx = getContext("2d");
