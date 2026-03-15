@@ -201,7 +201,7 @@ Item {
             return;
         _fetchEndpoint("fetchPill", "/users/current/status_bar/today", parsed => {
             const d = parsed.data;
-            totalTimeToday = d.grand_total.text;
+            totalTimeToday = d.grand_total.text || "0m";
             totalSecondsToday = d.grand_total.total_seconds;
             currentProject = (d.projects && d.projects[0]) ? d.projects[0].name : "";
             currentLanguage = (d.languages && d.languages[0]) ? d.languages[0].name : "";

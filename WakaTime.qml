@@ -16,27 +16,37 @@ PluginComponent {
         pluginService: root.pluginService
     }
 
-    // Computed pill properties — declared as properties so QML tracks
-    // api.* dependencies and re-evaluates automatically when data changes.
-    readonly property color iconColor: api.isConfigured && api.totalSecondsToday > 0 && pluginData.showGoalColor !== false
-        ? (api.totalSecondsToday / ((parseFloat(pluginData.dailyGoalHours) || 4) * 3600) >= 0.9 ? Theme.success
-          : api.totalSecondsToday / ((parseFloat(pluginData.dailyGoalHours) || 4) * 3600) >= 0.5 ? Theme.warning
-          : Theme.error)
-        : Theme.surfaceText
+    // Scalar properties forwarded from api — safe to reference from Component{} via root.*
+    readonly property bool apiConfigured: api ? api.isConfigured : false
+    readonly property string apiTotalTime: api ? (api.totalTimeToday || "0m") : "--"
+    readonly property string apiProject: api ? api.currentProject : ""
+    readonly property string apiLanguage: api ? api.currentLanguage : ""
+    readonly property string apiEditor: api ? api.currentEditor : ""
+    readonly property int apiTotalSeconds: api ? api.totalSecondsToday : 0
+
+    readonly property color iconColor: {
+        if (!api || !api.isConfigured || api.totalSecondsToday === 0)
+            return Theme.surfaceText;
+        if (pluginData.showGoalColor === false)
+            return Theme.surfaceText;
+        const goal = (parseFloat(pluginData.dailyGoalHours) || 4) * 3600;
+        const ratio = api.totalSecondsToday / goal;
+        if (ratio >= 0.9)
+            return Theme.success;
+        if (ratio >= 0.5)
+            return Theme.warning;
+        return Theme.error;
+    }
 
     readonly property string pillExtraText: {
-        if (!api.isConfigured)
+        if (!api || !api.isConfigured)
             return "";
         const field = pluginData.pillDisplayField || "project";
         switch (field) {
-        case "project":
-            return api.currentProject;
-        case "language":
-            return api.currentLanguage;
-        case "editor":
-            return api.currentEditor;
-        default:
-            return "";
+        case "project":  return api.currentProject;
+        case "language": return api.currentLanguage;
+        case "editor":   return api.currentEditor;
+        default:         return "";
         }
     }
 
@@ -53,7 +63,7 @@ PluginComponent {
             }
 
             StyledText {
-                text: root.api.isConfigured ? root.api.totalTimeToday : "configure"
+                text: root.apiConfigured ? root.apiTotalTime : "configure"
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
                 anchors.verticalCenter: parent.verticalCenter
