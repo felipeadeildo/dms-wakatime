@@ -197,18 +197,100 @@ PluginComponent {
         }
     }
 
-    // Popout (placeholder - filled in Phase 2+)
+    // Popout
     popoutWidth: 480
     popoutHeight: 600
 
     popoutContent: Component {
         PopoutComponent {
+            id: popout
             showCloseButton: true
 
-            StyledText {
-                anchors.centerIn: parent
-                text: "WakaTime - coming soon"
-                color: Theme.surfaceTextMedium
+            property int currentTab: 0
+
+            Column {
+                width: parent.width
+                spacing: 0
+
+                WakaHeader {
+                    width: parent.width
+                    totalTime: root.apiTotalTime
+                    totalSeconds: root.apiTotalSeconds
+                    hasError: api.hasError
+                    lastSuccessTime: api.lastSuccessTime
+                    apiUrl: api.apiUrl
+                    dailyGoalHours: parseFloat(pluginData.dailyGoalHours) || 4
+                    showGoalColor: pluginData.showGoalColor !== false
+                }
+
+                // Tab bar
+                Item {
+                    width: parent.width
+                    height: 40
+
+                    Row {
+                        anchors.fill: parent
+
+                        Repeater {
+                            model: ["Today", "Week", "Projects", "Stats"]
+
+                            Item {
+                                width: popout.width / 4
+                                height: 40
+
+                                readonly property bool active: popout.currentTab === index
+
+                                Rectangle {
+                                    anchors.bottom: parent.bottom
+                                    width: parent.width
+                                    height: 2
+                                    color: parent.active ? Theme.primary : "transparent"
+                                }
+
+                                StyledText {
+                                    anchors.centerIn: parent
+                                    text: modelData
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    font.weight: parent.active ? Font.Medium : Font.Normal
+                                    color: parent.active ? Theme.primary : Theme.onSurfaceVariant
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: popout.currentTab = index
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 1
+                    color: Theme.outline
+                    opacity: 0.2
+                }
+
+                // Tab content — uses Qt.resolvedUrl so path resolves from plugin root
+                Loader {
+                    id: tabLoader
+                    width: parent.width
+                    height: 420
+                    source: {
+                        switch (popout.currentTab) {
+                        case 0: return Qt.resolvedUrl("components/WakaTabToday.qml")
+                        case 1: return Qt.resolvedUrl("components/WakaTabWeek.qml")
+                        case 2: return Qt.resolvedUrl("components/WakaTabProjects.qml")
+                        case 3: return Qt.resolvedUrl("components/WakaTabStats.qml")
+                        default: return ""
+                        }
+                    }
+                    onLoaded: {
+                        item.api = api
+                        item.pluginData = root.pluginData
+                    }
+                }
             }
         }
     }
