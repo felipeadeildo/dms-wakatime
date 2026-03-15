@@ -137,7 +137,7 @@ Item {
         }
 
         // Fall back to ~/.wakatime.cfg for api_key / api_url
-        Proc.runCommand("wakaTime.readCfg", ["cat", Qt.resolvedUrl("~/.wakatime.cfg").replace("file://", "")], (stdout, exitCode) => {
+        Proc.runCommand("wakaTime.readCfg", ["sh", "-c", "cat ~/.wakatime.cfg"], (stdout, exitCode) => {
             if (exitCode === 0) {
                 const lines = stdout.split("\n");
                 for (const line of lines) {
