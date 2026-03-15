@@ -1,8 +1,9 @@
 CONFIGPATH ?= $(HOME)/.config/DankMaterialShell
 
 symlink:
-	if [ -e "$(HOME)/.config/DankMaterialShell/plugins/dms-wakatime" ]; then rm -f "$(HOME)/.config/DankMaterialShell/plugins/dms-wakatime"; fi
-	ln -s "$(PWD)" "$(HOME)/.config/DankMaterialShell/plugins/dms-wakatime"
+
+	@rm -f "$(CONFIGPATH)/plugins/dms-wakatime"
+	@ln -s "$(PWD)" "$(CONFIGPATH)/plugins/dms-wakatime"
 
 reload:
 	@echo "Reloading DMS plugins..."
