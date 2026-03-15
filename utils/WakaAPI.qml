@@ -36,12 +36,14 @@ Item {
     property var todayData: null
     property var weekData: null
     property var monthData: null
+    property var durationsData: null
 
     // Signals
     signal pillDataUpdated
     signal todayDataUpdated
     signal weekDataUpdated
     signal monthDataUpdated
+    signal durationsDataUpdated
     signal configLoaded
     signal connectionTestResult(bool success, string message)
 
@@ -226,6 +228,7 @@ Item {
             _saveSummaryCache("cacheToday", parsed.data);
             pillDataUpdated();
             todayDataUpdated();
+            fetchDurations();
         }, null);
     }
 
@@ -243,6 +246,7 @@ Item {
             _saveSummaryCache("cacheToday", parsed.data);
             pillDataUpdated();
             todayDataUpdated();
+            fetchDurations();
         }, null);
     }
 
@@ -259,6 +263,18 @@ Item {
             monthData = parsed.data;
             _saveSummaryCache("cacheMonth", parsed.data);
             monthDataUpdated();
+        }, null);
+    }
+
+    function fetchDurations() {
+        const today = new Date();
+        const dateStr = today.getFullYear() + "-"
+            + String(today.getMonth() + 1).padStart(2, "0") + "-"
+            + String(today.getDate()).padStart(2, "0");
+        _fetchEndpoint("fetchDurations", "/users/current/durations?date=" + dateStr, parsed => {
+            durationsData = parsed.data || [];
+            _saveSummaryCache("cacheDurations", durationsData);
+            durationsDataUpdated();
         }, null);
     }
 
@@ -328,6 +344,13 @@ Item {
         if (month) {
             try {
                 monthData = JSON.parse(month);
+            } catch (e) {}
+        }
+
+        const durations = pluginService.loadPluginData(pluginId, "cacheDurations", "");
+        if (durations) {
+            try {
+                durationsData = JSON.parse(durations);
             } catch (e) {}
         }
     }
