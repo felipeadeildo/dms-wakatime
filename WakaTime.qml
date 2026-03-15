@@ -1,8 +1,6 @@
 // Root PluginComponent. Owns the bar pill UI and the popout shell.
 // All data logic is delegated to WakaAPI.
 
-pragma ComponentBehavior: Bound
-
 import QtQuick
 import "./utils"
 import qs.Common
@@ -12,19 +10,14 @@ import qs.Modules.Plugins
 PluginComponent {
     id: root
 
-    // Injected by DMS
-    property var pluginService: null
-    property var popoutService: null
-
     // API module
     WakaAPI {
         id: api
         pluginService: root.pluginService
     }
 
-    // Computed pill properties (reactive bindings).
-    // Declared as properties so QML tracks api.* dependencies and
-    // re-evaluates automatically when data changes.
+    // Computed pill properties — declared as properties so QML tracks
+    // api.* dependencies and re-evaluates automatically when data changes.
     readonly property color iconColor: {
         if (!api.isConfigured || api.totalSecondsToday === 0)
             return Theme.onSurfaceVariant;
@@ -58,56 +51,37 @@ PluginComponent {
 
     // Bar pill (horizontal)
     horizontalBarPill: Component {
-        StyledRect {
-            required property real widgetThickness
+        Row {
+            spacing: Theme.spacingS
 
-            width: pillRow.implicitWidth + Theme.spacingM * 2
-            height: widgetThickness
-            radius: Theme.cornerRadius
-            color: Theme.surfaceContainerHigh
-
-            Row {
-                id: pillRow
-                anchors.centerIn: parent
-                spacing: Theme.spacingS
-
-                DankIcon {
-                    name: "keyboard"
-                    color: root.iconColor
-                    size: Theme.iconSize
-                }
-
-                StyledText {
-                    text: api.isConfigured ? api.totalTimeToday : "configure"
-                    color: Theme.onSurface
-                    font.pixelSize: Theme.fontSizeMedium
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                StyledText {
-                    visible: root.pillExtraText !== ""
-                    text: "•"
-                    color: Theme.onSurfaceVariant
-                    font.pixelSize: Theme.fontSizeMedium
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                StyledText {
-                    visible: root.pillExtraText !== ""
-                    text: root.pillExtraText
-                    color: Theme.onSurfaceVariant
-                    font.pixelSize: Theme.fontSizeMedium
-                    verticalAlignment: Text.AlignVCenter
-                }
+            DankIcon {
+                name: "keyboard"
+                color: root.iconColor
+                size: Theme.iconSize
+                anchors.verticalCenter: parent.verticalCenter
             }
 
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (root.popoutService)
-                        root.popoutService.toggle("wakaTime");
-                }
+            StyledText {
+                text: root.api.isConfigured ? root.api.totalTimeToday : "configure"
+                color: Theme.onSurface
+                font.pixelSize: Theme.fontSizeMedium
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            StyledText {
+                visible: root.pillExtraText !== ""
+                text: "•"
+                color: Theme.onSurfaceVariant
+                font.pixelSize: Theme.fontSizeMedium
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            StyledText {
+                visible: root.pillExtraText !== ""
+                text: root.pillExtraText
+                color: Theme.onSurfaceVariant
+                font.pixelSize: Theme.fontSizeMedium
+                anchors.verticalCenter: parent.verticalCenter
             }
         }
     }
