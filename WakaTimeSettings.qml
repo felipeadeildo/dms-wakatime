@@ -1,99 +1,22 @@
 // Settings UI. Zero business logic, all fields are declarative settings
-// components. Uses a minimal QtObject for the test-connection action only
-// (no timers, no background fetches).
+// components.
 
 import QtQuick
 import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
-import qs.Services
 
 PluginSettings {
     id: root
     pluginId: "wakaTime"
 
-    Item {
-        id: apiSection
-        width: parent.width
-        height: apiColumn.implicitHeight
-        property bool expanded: false
+    // ── Daily goal ───────────────────────────────────────────────────────────
 
-        Column {
-            id: apiColumn
-            width: parent.width
-            spacing: 0
-
-            Item {
-                width: parent.width
-                height: 36
-
-                Row {
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: Theme.spacingS
-
-                    DankIcon {
-                        name: apiSection.expanded ? "expand_less" : "expand_more"
-                        color: Theme.onSurfaceVariant
-                        size: Theme.iconSizeSmall
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    StyledText {
-                        text: "API"
-                        font.weight: Font.Bold
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.onSurfaceVariant
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: apiSection.expanded = !apiSection.expanded
-                }
-            }
-
-            // Collapsible fields
-            Column {
-                width: parent.width
-                spacing: 0
-                visible: apiSection.expanded
-
-                StyledText {
-                    text: "Auto-detected from ~/.wakatime.cfg. Override only if needed (e.g. Wakapi, Hakatime)."
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.onSurfaceVariant
-                    wrapMode: Text.WordWrap
-                    width: parent.width
-                    bottomPadding: Theme.spacingS
-                }
-
-                StringSetting {
-                    settingKey: "apiKey"
-                    label: "API Key"
-                    description: "Overrides ~/.wakatime.cfg"
-                    placeholder: "waka_..."
-                    defaultValue: ""
-                }
-
-                StringSetting {
-                    settingKey: "apiUrl"
-                    label: "API URL"
-                    description: "For Wakapi or Hakatime. Leave empty for wakatime.com"
-                    placeholder: "https://wakatime.com/api/v1"
-                    defaultValue: ""
-                }
-            }
-        }
-    }
-
-    // Daily goal
     StyledText {
         text: "Daily goal"
         font.weight: Font.Bold
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.onSurfaceVariant
+        color: Theme.surfaceText
     }
 
     SelectionSetting {
@@ -148,12 +71,20 @@ PluginSettings {
         defaultValue: "4"
     }
 
-    // Bar pill
+    Rectangle {
+        width: parent.width
+        height: 1
+        color: Theme.outline
+        opacity: 0.3
+    }
+
+    // ── Bar pill ─────────────────────────────────────────────────────────────
+
     StyledText {
         text: "Bar pill"
         font.weight: Font.Bold
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.onSurfaceVariant
+        color: Theme.surfaceText
     }
 
     SelectionSetting {
@@ -187,12 +118,20 @@ PluginSettings {
         defaultValue: true
     }
 
-    // Refresh intervals
+    Rectangle {
+        width: parent.width
+        height: 1
+        color: Theme.outline
+        opacity: 0.3
+    }
+
+    // ── Refresh intervals ────────────────────────────────────────────────────
+
     StyledText {
         text: "Refresh intervals"
         font.weight: Font.Bold
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.onSurfaceVariant
+        color: Theme.surfaceText
     }
 
     SelectionSetting {
@@ -247,5 +186,45 @@ PluginSettings {
             }
         ]
         defaultValue: "7d"
+    }
+
+    Rectangle {
+        width: parent.width
+        height: 1
+        color: Theme.outline
+        opacity: 0.3
+    }
+
+    // ── API ──────────────────────────────────────────────────────────────────
+
+    StyledText {
+        text: "API"
+        font.weight: Font.Bold
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceText
+    }
+
+    StyledText {
+        text: "Auto-detected from ~/.wakatime.cfg. Override only if needed (e.g. Wakapi, Hakatime)."
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+        wrapMode: Text.WordWrap
+        width: parent.width
+    }
+
+    StringSetting {
+        settingKey: "apiKey"
+        label: "API Key"
+        description: "Overrides ~/.wakatime.cfg"
+        placeholder: "waka_..."
+        defaultValue: ""
+    }
+
+    StringSetting {
+        settingKey: "apiUrl"
+        label: "API URL"
+        description: "For Wakapi or Hakatime. Leave empty for wakatime.com"
+        placeholder: "https://api.wakatime.com/api/v1"
+        defaultValue: ""
     }
 }
