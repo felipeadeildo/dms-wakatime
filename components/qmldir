@@ -1,0 +1,8 @@
+WakaHeader 1.0 WakaHeader.qml
+BarChart 1.0 BarChart.qml
+HorizontalBar 1.0 HorizontalBar.qml
+PieChart 1.0 PieChart.qml
+WakaTabToday 1.0 WakaTabToday.qml
+WakaTabWeek 1.0 WakaTabWeek.qml
+WakaTabProjects 1.0 WakaTabProjects.qml
+WakaTabStats 1.0 WakaTabStats.qml

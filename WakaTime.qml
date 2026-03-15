@@ -4,6 +4,7 @@
 
 import QtQuick
 import "./utils"
+import "./components"
 import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
