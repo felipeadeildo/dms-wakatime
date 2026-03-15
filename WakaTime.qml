@@ -43,10 +43,14 @@ PluginComponent {
             return "";
         const field = pluginData.pillDisplayField || "project";
         switch (field) {
-        case "project":  return api.currentProject;
-        case "language": return api.currentLanguage;
-        case "editor":   return api.currentEditor;
-        default:         return "";
+        case "project":
+            return api.currentProject;
+        case "language":
+            return api.currentLanguage;
+        case "editor":
+            return api.currentEditor;
+        default:
+            return "";
         }
     }
 
@@ -65,23 +69,23 @@ PluginComponent {
             StyledText {
                 text: root.apiConfigured ? root.apiTotalTime : "configure"
                 color: Theme.surfaceText
-                font.pixelSize: Theme.fontSizeMedium
+                font.pixelSize: Theme.fontSizeSmall
                 anchors.verticalCenter: parent.verticalCenter
             }
 
             StyledText {
                 visible: root.pillExtraText !== ""
                 text: "•"
-                color: Theme.onSurfaceVariant
-                font.pixelSize: Theme.fontSizeMedium
+                color: Theme.surfaceTextMedium
+                font.pixelSize: Theme.fontSizeSmall
                 anchors.verticalCenter: parent.verticalCenter
             }
 
             StyledText {
                 visible: root.pillExtraText !== ""
                 text: root.pillExtraText
-                color: Theme.onSurfaceVariant
-                font.pixelSize: Theme.fontSizeMedium
+                color: Theme.surfaceTextMedium
+                font.pixelSize: Theme.fontSizeSmall
                 anchors.verticalCenter: parent.verticalCenter
             }
         }
@@ -98,7 +102,7 @@ PluginComponent {
             StyledText {
                 anchors.centerIn: parent
                 text: "WakaTime - coming soon"
-                color: Theme.onSurfaceVariant
+                color: Theme.surfaceTextMedium
             }
         }
     }
