@@ -15,7 +15,7 @@ Item {
 
     // API config
     property string apiKey: ""
-    property string apiUrl: "https://wakatime.com/api/v1"
+    property string apiUrl: "https://api.wakatime.com/api/v1"
 
     readonly property bool isConfigured: apiKey !== ""
 
@@ -199,13 +199,14 @@ Item {
     function fetchPill() {
         if (!isConfigured)
             return;
-        _fetchEndpoint("fetchPill", "/users/current/status_bar/today", parsed => {
-            const d = parsed.data;
-            totalTimeToday = d.grand_total.text || "0m";
-            totalSecondsToday = d.grand_total.total_seconds;
-            currentProject = (d.projects && d.projects[0]) ? d.projects[0].name : "";
-            currentLanguage = (d.languages && d.languages[0]) ? d.languages[0].name : "";
-            currentEditor = (d.editors && d.editors[0]) ? d.editors[0].name : "";
+        _fetchEndpoint("fetchPill", "/users/current/summaries?range=today", parsed => {
+            const cumulative = parsed.cumulative_total;
+            const day = parsed.data && parsed.data[0];
+            totalTimeToday = (cumulative && cumulative.text) ? cumulative.text : (day ? (day.grand_total.text || "0m") : "0m");
+            totalSecondsToday = cumulative ? cumulative.seconds : (day ? day.grand_total.total_seconds : 0);
+            currentProject = (day && day.projects && day.projects[0]) ? day.projects[0].name : "";
+            currentLanguage = (day && day.languages && day.languages[0]) ? day.languages[0].name : "";
+            currentEditor = (day && day.editors && day.editors[0]) ? day.editors[0].name : "";
             _savePillCache();
             pillDataUpdated();
         }, null);
